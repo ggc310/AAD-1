@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asset Allocation Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+
+:root{--bg:#0b0e1a;--panel:#111827;--card:#1a2338;--card2:#1e2840;--border:#2a3558;--accent:#3b82f6;--as:rgba(59,130,246,.15);--green:#22c55e;--gs:rgba(34,197,94,.12);--red:#ef4444;--rs:rgba(239,68,68,.12);--yellow:#eab308;--orange:#f97316;--text:#f1f5f9;--t2:#94a3b8;--t3:#475569;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);line-height:1.5;font-size:13px;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;gap:16px;}
+.nav-brand{font-size:17px;font-weight:800;color:var(--accent);white-space:nowrap;}
+.nav-tabs{display:flex;gap:2px;flex-wrap:wrap;}
+.nav-tab{padding:8px 14px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--t2);border-bottom:2px solid transparent;transition:all .2s;}
+.nav-tab.active,.nav-tab:hover{color:var(--accent);border-bottom-color:var(--accent);background:rgba(59,130,246,.08);}
+.nav-date{font-size:10px;color:var(--t3);white-space:nowrap;}
+.tab-pane{display:none;padding:24px;min-height:calc(100vh - 57px);}
+.tab-pane.active{display:block;}
+/* HEADLINE BAR */
+.headline-bar{padding:16px 20px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;}
+.headline-main{font-size:22px;font-weight:900;line-height:1.2;margin-bottom:6px;}
+.headline-sub{font-size:11px;color:var(--t2);display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+.hz-pill{padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;background:var(--as);color:var(--accent);}
+.score-pill{padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;}
+/* HZ SELECTOR */
+.hz-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:14px;flex-wrap:wrap;}
+.hz-label{font-size:9px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;}
+.hz-btns{display:flex;gap:4px;}
+.hz-btn{padding:5px 11px;font-size:11px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--t2);cursor:pointer;border-radius:4px;transition:all .2s;}
+.hz-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.hz-btn:hover{border-color:var(--accent);color:var(--accent);}
+.hz-wt-info{font-size:10px;color:var(--t3);margin-left:auto;}
+/* CONVICTION CARDS */
+.conv-section{margin-bottom:14px;}
+.conv-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.conv-card{padding:14px;border-radius:8px;border:1px solid;}
+.conv-card-rank{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.conv-card-trade{font-size:14px;font-weight:900;margin-bottom:2px;line-height:1.3;}
+.conv-card-dim{font-size:10px;font-weight:600;margin-bottom:8px;opacity:.7;}
+.conv-card-score{font-size:22px;font-weight:900;margin-bottom:8px;}
+.conv-card-why{font-size:11px;line-height:1.6;padding:10px;border-radius:5px;background:rgba(0,0,0,.25);}
+.conv-card-why strong{display:block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;opacity:.8;}
+/* NARRATIVE */
+.narrative{padding:16px 20px;background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;margin-bottom:14px;}
+.narrative-ttl{font-size:9px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px;}
+.narrative p{font-size:12.5px;color:var(--text);line-height:1.7;margin-bottom:10px;}
+.narrative p:last-child{margin-bottom:0;}
+.narrative strong{color:var(--accent);font-weight:700;}
+/* DASH BODY */
+.dash-body{display:flex;gap:20px;}
+.sidebar{width:196px;flex-shrink:0;}
+.sidebar-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px;}
+.sidebar-ttl{font-size:9px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.metric-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.metric-row:last-child{border-bottom:none;}
+.metric-name{color:var(--t2);}
+.metric-val{font-weight:700;color:var(--accent);}
+.metric-note{font-size:9px;color:var(--t3);display:block;text-align:right;}
+.main-content{flex:1;min-width:0;}
+.section-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;}
+.section-ttl{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
+/* SLIDER SCORECARD */
+.dim-row{padding:13px 0;border-bottom:1px solid var(--border);}
+.dim-row:last-child{border-bottom:none;}
+.dim-row-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.dim-row-name{font-size:12px;font-weight:800;color:var(--text);flex:1;min-width:140px;}
+.dim-row-stance{font-size:11px;font-weight:700;flex:2;}
+.dim-row-score{font-size:20px;font-weight:900;width:50px;text-align:right;}
+.dim-row-cv{font-size:9px;font-weight:700;padding:3px 8px;border-radius:12px;white-space:nowrap;}
+.slider-track-wrap{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.slider-end-lbl{font-size:9px;color:var(--t3);width:110px;line-height:1.3;}
+.slider-end-lbl.right{text-align:right;}
+.slider-track{flex:1;height:14px;background:var(--card2);border-radius:7px;position:relative;border:1px solid var(--border);}
+.slider-center-mark{position:absolute;left:50%;top:0;width:2px;height:100%;background:var(--border);z-index:2;transform:translateX(-50%);}
+.slider-fill{position:absolute;top:2px;height:10px;border-radius:5px;transition:all .3s ease;}
+.sig-breakdown{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.sig-pill{padding:3px 8px;background:var(--card2);border-radius:4px;font-size:10px;border:1px solid var(--border);}
+.sig-pill-val{font-weight:700;}
+/* PORTFOLIO SECTION */
+.port-tabs{display:flex;gap:8px;margin-bottom:14px;}
+.port-tab-btn{padding:8px 16px;font-size:11px;font-weight:600;background:transparent;border:1px solid var(--border);color:var(--t2);cursor:pointer;border-radius:5px;transition:all .2s;}
+.port-tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.port-tab-btn:hover:not(.active){border-color:var(--accent);color:var(--accent);}
+.port-obj{font-size:11px;color:var(--t2);padding:8px 12px;background:var(--card2);border-left:3px solid var(--accent);border-radius:4px;margin-bottom:12px;}
+.port-table{width:100%;border-collapse:collapse;font-size:11px;}
+.port-table th{padding:8px;text-align:left;font-size:9px;font-weight:700;color:var(--t3);border-bottom:1px solid var(--border);background:var(--card2);text-transform:uppercase;}
+.port-table td{padding:8px;border-bottom:1px solid var(--border);}
+.port-table tr:last-child td{border-bottom:none;}
+.port-table tr:hover td{background:rgba(255,255,255,.02);}
+.cat-row td{background:var(--card2);font-weight:800;font-size:10px;color:var(--accent);text-transform:uppercase;padding:5px 8px;}
+.consistency-box{margin-top:12px;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:6px;}
+.consistency-ttl{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:8px;}
+.consistency-item{font-size:11px;padding:3px 0;color:var(--t2);}
+.consistency-item.ok{color:#22c55e;}
+.consistency-item.warn{color:#eab308;}
+/* SIGNAL EDITOR */
+.sig-editor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.sig-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.sig-card-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.sig-card-name{font-size:12px;font-weight:800;color:var(--text);}
+.sig-score-big{font-size:18px;font-weight:900;}
+.sig-stance{font-size:10px;font-weight:700;margin-bottom:12px;padding:4px 8px;border-radius:4px;}
+.slider-wrap{margin-bottom:8px;}
+.slider-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--t2);margin-bottom:3px;}
+.slider-lbl-val{font-weight:700;color:var(--text);}
+input[type=range]{width:100%;height:4px;border-radius:2px;background:var(--card2);outline:none;-webkit-appearance:none;appearance:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer;}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer;border:none;}
+.sig-drv{font-size:9px;color:var(--t3);margin-top:10px;padding-top:8px;border-top:1px solid var(--border);}
+/* MARKET HISTORY */
+.hist-layout{display:flex;gap:16px;}
+.hist-list{width:220px;flex-shrink:0;}
+.hist-list-item{padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:pointer;transition:all .2s;}
+.hist-list-item:hover,.hist-list-item.active{border-color:var(--accent);background:var(--as);}
+.hist-list-name{font-size:11px;font-weight:700;color:var(--text);}
+.hist-list-val{font-size:10px;color:var(--accent);font-weight:700;}
+.hist-list-sub{font-size:9px;color:var(--t3);}
+.hist-main{flex:1;min-width:0;}
+.hist-stats{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.hist-stat{padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:6px;flex:1;min-width:70px;}
+.hist-stat-val{font-size:18px;font-weight:800;}
+.hist-stat-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;}
+.hist-chart-area{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;}
+.hist-note{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;color:var(--t2);line-height:1.6;}
+.hist-note strong{color:var(--text);}
+canvas{display:block;width:100%;}
+/* INDICATORS */
+.ind-filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.ind-filter{padding:5px 12px;font-size:11px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--t2);cursor:pointer;border-radius:4px;}
+.ind-filter.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.ind-table{width:100%;border-collapse:collapse;font-size:11px;}
+.ind-table th{padding:8px 10px;text-align:left;font-size:9px;font-weight:700;color:var(--t3);border-bottom:1px solid var(--border);background:var(--card2);text-transform:uppercase;}
+.ind-table td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+.ind-table tr:hover td{background:rgba(255,255,255,.02);}
+.pct-bar-outer{width:72px;height:8px;background:var(--card2);border-radius:4px;overflow:hidden;display:inline-block;vertical-align:middle;}
+.pct-bar-inner{height:100%;border-radius:4px;}
+.tooltip-wrap{position:relative;display:inline-block;}
+.tooltip-btn{background:none;border:1px solid var(--border);color:var(--t3);cursor:help;font-size:9px;padding:1px 5px;border-radius:3px;}
+.tooltip-content{display:none;position:absolute;z-index:200;left:0;top:100%;margin-top:4px;width:240px;background:#1e293b;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:11px;color:var(--t2);line-height:1.5;}
+.tooltip-wrap:hover .tooltip-content{display:block;}
+/* ASSET VIEWS */
+.asset-tabs-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.asset-tab-btn{padding:7px 14px;font-size:11px;font-weight:600;background:transparent;border:1px solid var(--border);color:var(--t2);cursor:pointer;border-radius:5px;transition:all .2s;}
+.asset-tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.asset-tab-btn:hover:not(.active){border-color:var(--accent);color:var(--accent);}
+.asset-panel{display:flex;gap:20px;}
+.asset-left{flex:1;}
+.asset-right{width:290px;flex-shrink:0;}
+.asset-section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;}
+.asset-section-ttl{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.asset-event{padding:8px 0;border-bottom:1px solid var(--border);font-size:11px;color:var(--t2);line-height:1.5;}
+.asset-event:last-child{border-bottom:none;}
+.asset-event strong{color:var(--text);}
+.watch-item{padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;color:var(--t2);}
+.watch-item:last-child{border-bottom:none;}
+.watch-item::before{content:'→ ';color:var(--accent);}
+/* METHODOLOGY */
+.meth-section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:14px;}
+.meth-ttl{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.meth-sub{font-size:11px;font-weight:700;color:var(--accent);margin:14px 0 6px;}
+.meth-text{font-size:12px;color:var(--t2);line-height:1.7;}
+.meth-text p{margin-bottom:8px;}
+.faq-item{border-bottom:1px solid var(--border);padding:12px 0;}
+.faq-q{font-size:12px;font-weight:700;color:var(--text);}
+.faq-a{font-size:11px;color:var(--t2);margin-top:8px;line-height:1.6;}
+.hz-table{width:100%;border-collapse:collapse;font-size:11px;}
+.hz-table th{padding:8px;text-align:left;color:var(--t3);border-bottom:1px solid var(--border);background:var(--card2);font-size:9px;font-weight:700;text-transform:uppercase;}
+.hz-table td{padding:8px;border-bottom:1px solid var(--border);}
+
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Asset Allocation Dashboard</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('dashboard',this)">Dashboard</button>
+    <button class="nav-tab" onclick="switchTab('signals',this)">Signal Editor</button>
+    <button class="nav-tab" onclick="switchTab('history',this)">Market History</button>
+    <button class="nav-tab" onclick="switchTab('indicators',this)">Indicators</button>
+    <button class="nav-tab" onclick="switchTab('assetviews',this)">Asset Class Views</button>
+    <button class="nav-tab" onclick="switchTab('methodology',this)">Methodology</button>
+  </div>
+  <div class="nav-date" id="nav-date"></div>
+</nav>
+<div id="tab-dashboard" class="tab-pane active">
+  <div id="hz-bar-el"></div>
+  <div id="headline-el"></div>
+  <div id="conviction-el"></div>
+  <div id="narrative-el" class="narrative"><div class="narrative-ttl">Portfolio Narrative</div><div id="narrative-body"></div></div>
+  <div class="dash-body">
+    <div class="sidebar">
+      <div class="sidebar-box"><div class="sidebar-ttl">Market Snapshot</div><div id="metrics-inner"></div></div>
+    </div>
+    <div class="main-content">
+      <div class="section-box"><div class="section-ttl">Allocation Scorecard — Signal Magnitude by Dimension</div><div id="scorecard-inner"></div></div>
+      <div class="section-box">
+        <div class="section-ttl">Reference Portfolios</div>
+        <div id="port-tabs-row"></div>
+        <div id="port-obj"></div>
+        <div id="port-table-wrap"></div>
+        <div id="port-consistency"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="tab-signals" class="tab-pane">
+  <div style="margin-bottom:16px"><h2 style="font-size:18px;font-weight:800;color:var(--accent)">Signal Editor</h2><p style="color:var(--t2);font-size:12px;margin-top:4px">Adjust fundamental (F), sentiment (S), valuation (V), and momentum (M) scores per dimension. Scale: -10 (max bearish) to +10 (max bullish). Changes update the entire dashboard in real time.</p></div>
+  <div id="signals-content"></div>
+</div>
+<div id="tab-history" class="tab-pane">
+  <div style="margin-bottom:16px"><h2 style="font-size:18px;font-weight:800;color:var(--accent)">Market History</h2><p style="color:var(--t2);font-size:12px;margin-top:4px">Time series data (Jan 2023 – Feb 2026) with percentile context, event annotations, and investment implications.</p></div>
+  <div class="hist-layout"><div class="hist-list" id="hist-list"></div><div class="hist-main" id="hist-main"></div></div>
+</div>
+<div id="tab-indicators" class="tab-pane">
+  <div style="margin-bottom:16px"><h2 style="font-size:18px;font-weight:800;color:var(--accent)">Indicator Overview</h2><p style="color:var(--t2);font-size:12px;margin-top:4px">20 model inputs with current values, historical context, and investment implications. Hover <b>?</b> for definitions.</p></div>
+  <div id="ind-filters"></div><div id="ind-table-wrap"></div>
+</div>
+<div id="tab-assetviews" class="tab-pane">
+  <div style="margin-bottom:16px"><h2 style="font-size:18px;font-weight:800;color:var(--accent)">Asset Class Views</h2><p style="color:var(--t2);font-size:12px;margin-top:4px">Fundamentals, notable events, and PM context for each allocation dimension.</p></div>
+  <div class="asset-tabs-row" id="asset-tabs"></div><div id="asset-body"></div>
+</div>
+<div id="tab-methodology" class="tab-pane">
+  <div style="margin-bottom:16px"><h2 style="font-size:18px;font-weight:800;color:var(--accent)">Methodology</h2><p style="color:var(--t2);font-size:12px;margin-top:4px">Framework, signal construction, horizon weights, and academic foundations.</p></div>
+  <div id="meth-content"></div>
+</div>
+
+<script>
+
+'use strict';
+
+var DIMS = [
+  {id:'sb',   label:'Stocks vs Bonds',       bull:'Equities',       bear:'Bonds',            drivers:'ERP, CAPE, ISM, yield curve'},
+  {id:'us',   label:'US vs Non-US Equity',   bull:'US Equity',      bear:'Non-US Equity',    drivers:'Relative CAPE, USD strength, fund flows'},
+  {id:'em',   label:'EM vs DM Equity',       bull:'EM Equity',      bear:'DM Equity',        drivers:'EM/DM CAPE spread, EM growth, FX carry'},
+  {id:'lg',   label:'Large vs Small Cap',    bull:'Large Cap',      bear:'Small Cap',         drivers:'P/B spread, earnings quality, rate sensitivity'},
+  {id:'vg',   label:'Value vs Growth',       bull:'Value',          bear:'Growth',            drivers:'P/E spread, earnings yield, momentum, rates'},
+  {id:'hy',   label:'HY vs IG Credit',       bull:'High Yield',     bear:'Inv Grade',         drivers:'OAS percentile, default rate, credit cycle'},
+  {id:'dur',  label:'Long vs Short Duration',bull:'Long Duration',  bear:'Short Duration',    drivers:'Real yield, ACM term premium, inflation'},
+  {id:'emfx', label:'EM Local vs Hard FX',   bull:'EM Local FX',   bear:'EM Hard Currency',  drivers:'Real yield carry, USD trend, EM fundamentals'},
+  {id:'fx',   label:'USD Short vs Long',     bull:'Short USD',      bear:'Long USD',          drivers:'REER vs PPP, CFTC positioning, rate differentials'}
+];
+
+// HORIZONS — weights grounded in empirical research:
+// Momentum: best 1-12M (Jegadeesh & Titman 1993), decays fast
+// Sentiment: best 1-6M (Baker & Wurgler 2006), reverting at extremes
+// Valuation: best 3-10Y (Shiller 1988, Campbell 2008, R²≈0.4 at 10Y)
+// Fundamental: best 1-3Y business cycle
+var HORIZONS = {
+  '3m': {label:'3-Month Tactical',    wF:15, wS:40, wV:10, wM:35,
+    rationale:'Sentiment and momentum dominate over 3 months. Valuation has near-zero predictive power at this horizon (Shiller). Sentiment extremes (AAII, VIX) and price momentum are the highest-R² short-term signals.'},
+  '6m': {label:'6-Month Tactical',    wF:20, wS:30, wV:15, wM:35,
+    rationale:'Momentum remains the strongest 6M predictor. Sentiment fades slightly. Fundamental begins to matter (earnings cycle). Valuation still minimal.'},
+  '1y': {label:'1-Year Core',         wF:30, wS:20, wV:20, wM:30,
+    rationale:'More balanced horizon. Business cycle (ISM, earnings) begins to dominate. Momentum still meaningful (12-1 month). Valuation matters moderately at 1Y.'},
+  '3y': {label:'3-Year Strategic',    wF:35, wS:10, wV:40, wM:15,
+    rationale:'Valuation and fundamentals dominate at 3Y. CAPE explains ~30% of 3Y forward returns. Momentum signal largely decays. Sentiment is noise at this horizon.'},
+  '5y': {label:'5-Year Strategic',    wF:25, wS:10, wV:55, wM:10,
+    rationale:'Valuation is the primary driver at 5Y (Shiller R²≈0.35 at 5Y). CAPE, ERP, OAS percentile all highly predictive. Momentum near-zero predictive power. Sentiment a minor contrarian input.'},
+  '10y':{label:'10-Year Secular',     wF:20, wS: 5, wV:70, wM: 5,
+    rationale:'Valuation near-exclusively predictive at 10Y (Shiller R²≈0.4). CAPE explains ~40% of 10Y equity returns. Momentum inverts at long horizons. Fundamental captures secular structural shifts only.'}
+};
+
+var HZ_DEFAULTS = {
+  '5y': {sb:[-7,-4,-5,3],us:[-4,1,-6,-2],em:[4,-1,1,-1],lg:[-3,1,-8,3],vg:[6,1,2,-4],hy:[-1,-2,-6,-2],dur:[2,-1,5,-4],emfx:[4,-1,5,1],fx:[1,-1,-2,-4]},
+  '3y': {sb:[-5,-3,-4,2],us:[-3,1,-5,-1],em:[3,-1,1,-1],lg:[-2,1,-6,2],vg:[5,1,2,-3],hy:[-2,-2,-4,-1],dur:[1,-1,4,-3],emfx:[3,-1,4,1],fx:[1,-1,-2,-3]},
+  '1y': {sb:[-3,-2,-2,1],us:[-2,1,-3,0], em:[2,0,1,0],  lg:[-1,0,-3,1],vg:[3,1,1,-2],hy:[-3,-3,-2,0],dur:[0,-1,3,-2],emfx:[2,0,3,1],  fx:[0,-1,-1,-2]},
+  '6m': {sb:[-2,-3,-1,2],us:[-1,2,-2,1], em:[1,-1,0,1], lg:[0,1,-2,2], vg:[2,2,0,-1],hy:[-4,-4,-1,1],dur:[-1,-2,2,-1],emfx:[1,-1,2,2],  fx:[-1,-2,0,-1]},
+  '3m': {sb:[-1,-4,0,3], us:[0,3,-1,2],  em:[0,-2,-1,2],lg:[1,2,-1,3], vg:[1,3,-1,0],hy:[-5,-5,0,2], dur:[-2,-3,1,0],emfx:[0,-2,1,3],  fx:[-2,-3,1,0]},
+  '10y':{sb:[-8,-2,-7,2],us:[-5,0,-7,-2],em:[5,0,2,-1], lg:[-4,0,-9,2],vg:[7,0,3,-3],hy:[1,-1,-7,-2],dur:[3,-1,6,-3],emfx:[5,0,6,1],   fx:[2,0,-3,-4]}
+};
+
+// Conviction explanations — direction-aware, 2-3 sentences
+var CONV_TEXT = {
+  'sb': {
+    pos:'ERP positive: earnings yield now exceeds real risk-free rate, providing genuine compensation for equity risk. ISM expansion signals improving earnings fundamentals. Sentiment at lows creates a contrarian tailwind for equities.',
+    neg:'Negative ERP (-0.6%): S&P earnings yield (2.7%) sits below the 10Y TIPS real yield (2.15%) + inflation — first time since 2002. CAPE at 36.8x (92nd pct) historically predicts 3-5% real 10Y returns, below the risk-free rate. Bonds offer guaranteed 4.5% nominal vs uncertain equity upside at stretched multiples.'
+  },
+  'us': {
+    pos:'Relative momentum and superior earnings delivery favor US. AI capex cycle is structurally US-concentrated. Dollar cycle stabilizing removes FX drag on unhedged international positions.',
+    neg:'US CAPE (37x) vs international markets (Europe ~15x, EM ~13x) at widest spread in 20 years. USD overvalued ~10% on PPP models — a structural multi-year headwind. CFTC USD speculative longs at 80th pct signals crowded positioning with mean-reversion risk.'
+  },
+  'em': {
+    pos:'EM/DM CAPE spread at 15th pct of history — maximum relative cheapness favors EM mean-reversion. EM carry advantage (local yields 6-8% vs DM 4%) enhances return potential. China stimulus adds cyclical tailwind.',
+    neg:'USD headwinds at 107 suppress EM local currency returns. China property sector uncertainty weighs on sentiment. Political risk premiums (Mexico tariff exposure, South Africa fiscal) reduce multiple expansion potential.'
+  },
+  'lg': {
+    pos:'Large cap earnings quality, balance sheet strength, and global diversification premium. Mega-cap AI beneficiaries driving outsized earnings growth. Concentration in top-10 S&P reflects genuine earnings momentum, not just multiple expansion.',
+    neg:'Small cap P/B discount at 85th pct of history — most attractive relative valuation in two decades. Rate cuts disproportionately benefit rate-sensitive small-cap borrowers. ISM Manufacturing expansion historically predicts small cap outperformance (domestic cycle leverage).'
+  },
+  'vg': {
+    pos:'Value momentum has turned YTD — P/E spread narrowing but still historically wide. ISM expansion and rising PMIs favor cyclical value sectors: materials, industrials, financials. Earnings breadth improving beyond mega-cap AI names.',
+    neg:'Real yields above 2% compress DCF-based growth equity multiples — long-duration assets priced on distant cash flows suffer in high-real-yield regimes. CAPE-based value spread at 85th pct supports structural OW value. AI capex ROI uncertainty limits multiple expansion for growth.'
+  },
+  'hy': {
+    pos:'HY spreads adequately compensating for default risk: OAS above long-run average provides genuine carry. Default rate contained below 3%. Expansion regime supports credit fundamentals and tightening bias.',
+    neg:'HY OAS at 295bp (28th pct) — historically tight with minimal compensation for rising default risk (3.2% and climbing). Carry advantage over IG compressed to ~2%, insufficient buffer for spread normalization. Late-credit-cycle signal: prefer up-in-quality IG, reduce credit beta.'
+  },
+  'dur': {
+    pos:'Real yields at 2.15% provide genuine duration compensation — first time since 2008. Fed cutting cycle should compress the front-end, creating curve-steepening return asymmetry. Long duration is the primary recession hedge in a risk-off scenario.',
+    neg:'Bear-steepener risk: fiscal deficit ($1.8T, 6.5% of GDP) adding net Treasury supply. Term premium normalizing from suppressed post-GFC levels. 10Y at 4.52% not adequately compensating for duration + fiscal risk + inflation tail. Intermediate (3-5Y) offers better risk-adjusted carry.'
+  },
+  'emfx': {
+    pos:'EM local real yield advantage: 4-6% real yields vs DM 2%. EM central banks ahead of the curve on easing. Brazil, India, Indonesia carry supported by strong current account and fiscal positions. EM FX volatility contained in current low-VIX regime.',
+    neg:'USD at 107 is the dominant headwind suppressing EM local FX returns. CFTC EM FX positioning becoming crowded. Political risk elevated in key EM economies. Hard currency provides USD-return certainty vs. FX volatility risk of local-currency exposure.'
+  },
+  'fx': {
+    pos:'Rate differential of 100-200bp vs ECB/BOJ supports USD fundamentals near-term. Risk-off safe-haven demand. Tariff premium sustaining USD buying flows from repatriation dynamics.',
+    neg:'DXY at 107 is 8-12% above PPP fair value on BIS REER basis. CFTC speculative USD longs at 80th pct — crowded, vulnerable to reversal. US fiscal deficit (6.5% GDP) is a structural USD negative. Historical: overvalued USD corrects 15-30% over 3-5Y cycles (2002 and 1985 analogues).'
+  }
+};
+
+var PORTFOLIOS = {
+  '8020': {label:'80/20 Growth', obj:'Capital appreciation | Aggressive risk tolerance | Long investment horizon',
+    rows:[
+      {name:'US Large Cap Equity', cat:'eq', bm:50, dim:'us',  dir: 1, sens:1.2},
+      {name:'Non-US Dev. Equity',  cat:'eq', bm:18, dim:'us',  dir:-1, sens:0.8},
+      {name:'EM Equity',           cat:'eq', bm:12, dim:'em',  dir: 1, sens:1.0},
+      {name:'US Agg / IG Bonds',   cat:'fi', bm:10, dim:'hy',  dir:-1, sens:0.5},
+      {name:'US Treasuries',       cat:'fi', bm: 5, dim:'dur', dir: 1, sens:0.4},
+      {name:'Cash',                cat:'fi', bm: 5, dim:'sb',  dir:-1, sens:0.3}
+    ]},
+  '6040': {label:'60/40 Balanced', obj:'Balanced growth & income | Moderate risk tolerance | Medium-term horizon',
+    rows:[
+      {name:'US Large Cap Equity', cat:'eq', bm:35, dim:'us',  dir: 1, sens:1.2},
+      {name:'Non-US Dev. Equity',  cat:'eq', bm:15, dim:'us',  dir:-1, sens:0.8},
+      {name:'EM Equity',           cat:'eq', bm:10, dim:'em',  dir: 1, sens:1.0},
+      {name:'US IG Corp Bonds',    cat:'fi', bm:18, dim:'hy',  dir:-1, sens:0.5},
+      {name:'US Treasuries',       cat:'fi', bm:10, dim:'dur', dir: 1, sens:0.6},
+      {name:'TIPS',                cat:'fi', bm: 7, dim:'dur', dir: 1, sens:0.4},
+      {name:'Cash',                cat:'fi', bm: 5, dim:'sb',  dir:-1, sens:0.2}
+    ]},
+  '4060': {label:'40/60 Conservative', obj:'Capital preservation & income | Conservative risk tolerance | Shorter investment horizon',
+    rows:[
+      {name:'US Large Cap Equity', cat:'eq', bm:22, dim:'us',  dir: 1, sens:1.0},
+      {name:'Non-US Dev. Equity',  cat:'eq', bm:10, dim:'us',  dir:-1, sens:0.7},
+      {name:'EM Equity',           cat:'eq', bm: 8, dim:'em',  dir: 1, sens:0.8},
+      {name:'US IG Corp Bonds',    cat:'fi', bm:22, dim:'hy',  dir:-1, sens:0.5},
+      {name:'US Treasuries',       cat:'fi', bm:15, dim:'dur', dir: 1, sens:0.7},
+      {name:'TIPS',                cat:'fi', bm:10, dim:'dur', dir: 1, sens:0.5},
+      {name:'HY Bonds',            cat:'fi', bm: 5, dim:'hy',  dir: 1, sens:0.6},
+      {name:'Cash',                cat:'fi', bm: 8, dim:'sb',  dir:-1, sens:0.2}
+    ]}
+};
+
+var METRICS = [
+  {n:'VIX',v:'19.9',note:'54th pct'},
+  {n:'HY OAS',v:'295bp',note:'28th pct'},
+  {n:'CAPE',v:'36.8x',note:'92nd pct'},
+  {n:'ERP',v:'-0.6%',note:'Negative'},
+  {n:'10Y Yield',v:'4.52%',note:'78th pct'},
+  {n:'TIPS Real',v:'2.15%',note:'82nd pct'},
+  {n:'10Y BEI',v:'2.30%',note:'Anchored'},
+  {n:'2s10s',v:'+22bp',note:'Uninverted'},
+  {n:'DXY',v:'107.0',note:'75th pct'},
+  {n:'ISM Mfg',v:'50.3',note:'Expansion'},
+  {n:'AAII Bear',v:'39.8%',note:'Elevated'}
+];
+
+var HIST_LABELS = ['Jan\'23','Feb\'23','Mar\'23','Apr\'23','May\'23','Jun\'23',
+  'Jul\'23','Aug\'23','Sep\'23','Oct\'23','Nov\'23','Dec\'23',
+  'Jan\'24','Feb\'24','Mar\'24','Apr\'24','May\'24','Jun\'24',
+  'Jul\'24','Aug\'24','Sep\'24','Oct\'24','Nov\'24','Dec\'24',
+  'Jan\'25','Feb\'25'];
+
+var HIST_DATA = {
+  '10y': {label:'10Y Treasury Yield',unit:'%',cur:4.52,avg:3.40,hi:5.02,lo:3.42,pct:78,d:2,
+    vals:[3.52,3.92,3.96,3.57,3.64,3.84,4.03,4.25,4.57,4.93,4.47,3.97,3.96,4.22,4.20,4.70,4.46,4.36,4.22,3.91,3.78,4.28,4.18,4.58,4.80,4.52],
+    events:[{i:9,t:'5% peak'},{i:17,t:'Cuts begin'}],
+    note:'10Y at 4.52% sits at the 78th percentile of the post-2015 range. The 2023-24 backup reflected Fed tightening and term premium normalization.',
+    imp:'Moderate OW intermediate duration (5-7Y). Real yield of 2.15% provides compensation; fade any spike toward 5%.'},
+  'vix': {label:'VIX (Implied Volatility)',unit:'',cur:19.9,avg:18.5,hi:25.6,lo:12.1,pct:54,d:1,
+    vals:[20.0,21.5,22.2,16.0,17.9,13.7,13.1,15.6,17.5,19.8,14.2,12.4,13.3,14.0,13.0,15.6,12.9,12.4,16.4,23.4,16.0,20.3,14.7,17.4,19.4,19.9],
+    events:[{i:7,t:'Aug spk'},{i:19,t:'Selloff'}],
+    note:'VIX near its long-run average. The Aug 2024 spike to 65 (yen carry unwind) normalized rapidly. Moderate hedging demand without panic.',
+    imp:'Neutral hedging. Sustained move above 25 = re-positioning signal. Options remain cheap for tail hedges.'},
+  'hy_oas': {label:'HY Credit Spread (OAS)',unit:'bp',cur:295,avg:410,hi:485,lo:275,pct:28,d:0,
+    vals:[465,430,450,430,420,400,385,395,410,430,380,350,340,330,310,320,310,300,320,340,300,310,280,290,310,295],
+    events:[{i:0,t:'SVB risk'},{i:12,t:'Tightening'}],
+    note:'HY OAS at 295bp is at the 28th percentile — historically tight. Low default expectations and strong corporate earnings leave little room for error.',
+    imp:'UW High Yield relative to IG. Tight spreads compress carry advantage. Monitor CCC stress.'},
+  'cape': {label:'CAPE (Shiller P/E)',unit:'x',cur:36.8,avg:24.0,hi:38.5,lo:27.2,pct:92,d:1,
+    vals:[29.5,30.1,29.8,30.6,31.1,32.5,33.2,32.0,30.8,29.5,32.0,33.5,34.2,34.8,35.1,33.5,35.5,36.0,36.2,35.8,36.5,35.0,36.2,37.0,37.5,36.8],
+    events:[{i:3,t:'Rally'},{i:22,t:'New highs'}],
+    note:'CAPE at 36.8x sits at the 92nd percentile of its post-1950 range — exceeded only by the 1999-2000 tech bubble (~44x).',
+    imp:'Strong valuation headwind for US equities over 5-10Y. OW non-US (Europe ~15x, EM ~13x). Not a near-term timing signal.'},
+  'dxy': {label:'US Dollar Index (DXY)',unit:'',cur:107.0,avg:103.8,hi:114.8,lo:99.2,pct:75,d:1,
+    vals:[102.2,104.5,102.6,101.7,103.5,102.9,101.9,103.5,106.2,106.7,103.4,101.4,103.4,104.1,104.5,106.1,104.7,105.9,104.4,101.7,100.8,104.4,106.8,108.5,109.4,107.0],
+    events:[{i:9,t:'USD peak'},{i:20,t:'Fed pivot'}],
+    note:'DXY at 107 is elevated vs long-run fair value (REER basis). CFTC USD speculative longs at 80th pct.',
+    imp:'OW Non-US on hedged basis. USD above PPP fair value by ~10%. Avoid unhedged EM hard-currency positions.'},
+  'tips': {label:'TIPS Real Yield (10Y)',unit:'%',cur:2.15,avg:1.10,hi:2.55,lo:-1.08,pct:82,d:2,
+    vals:[1.38,1.56,1.52,1.30,1.56,1.67,1.85,2.02,2.22,2.44,2.19,2.08,2.05,2.10,2.00,2.30,2.24,2.18,2.09,1.84,1.74,2.16,2.17,2.25,2.40,2.15],
+    events:[{i:8,t:'2%+ real'},{i:24,t:'Peak real'}],
+    note:'TIPS real yield at 2.15% is at the 82nd percentile since 2003 — fair compensation for duration risk. Positive real rates are headwinds for gold and growth equities.',
+    imp:'OW TIPS vs nominal Treasuries. Real yields above 2% compress equity multiples — key ERP input.'},
+  'bei': {label:'10Y Breakeven Inflation',unit:'%',cur:2.30,avg:2.18,hi:2.98,lo:1.80,pct:55,d:2,
+    vals:[2.24,2.36,2.44,2.27,2.08,2.17,2.18,2.23,2.35,2.49,2.28,1.89,1.91,2.12,2.20,2.40,2.22,2.18,2.13,2.07,2.04,2.12,2.00,2.33,2.40,2.30],
+    events:[{i:9,t:'Tariff fears'},{i:12,t:'Disinflation'}],
+    note:'10Y BEI at 2.30% is near the Fed\'s implicit 2.5% tolerance band. BEI has been remarkably stable through 2024.',
+    imp:'Neutral TIPS vs nominals at current levels. Above 2.5% BEI = shift TIPS OW.'},
+  'curve': {label:'2s10s Yield Curve',unit:'%',cur:0.22,avg:-0.15,hi:0.32,lo:-1.08,pct:72,d:2,
+    vals:[-0.70,-0.90,-1.00,-0.60,-0.77,-1.02,-0.96,-0.78,-0.49,-0.18,-0.48,-0.35,-0.29,-0.41,-0.39,-0.42,-0.50,-0.43,-0.24,-0.02,0.06,-0.15,-0.02,0.28,0.32,0.22],
+    events:[{i:2,t:'Deep inv.'},{i:18,t:'Uninverts'}],
+    note:'2s10s at +22bp has returned to positive territory after the deepest inversion since 1981. Uninversion after prolonged inversion is historically associated with recession risk materializing.',
+    imp:'Watch steepening pace. Bear steepener limits long bond upside. Prefer intermediate (3-5Y) over 10Y+.'},
+  'ism': {label:'ISM Manufacturing PMI',unit:'',cur:50.3,avg:48.1,hi:50.9,lo:46.0,pct:58,d:1,
+    vals:[47.4,47.7,46.3,47.1,46.9,46.0,46.4,47.6,49.0,46.7,46.7,47.4,49.1,47.8,50.3,49.2,48.7,48.5,46.8,47.2,47.2,46.5,48.4,49.3,50.9,50.3],
+    events:[{i:2,t:'Recession'},{i:14,t:'Recovery'}],
+    note:'ISM crossed into expansion for first time since Nov 2022. The prolonged 24-month contraction reflected manufacturing destocking and goods demand normalization.',
+    imp:'Early recovery supports mild risk-on lean for cyclical equities and Value vs Growth tilt.'},
+  'aaii': {label:'AAII Bull-Bear Spread',unit:'%',cur:-8.0,avg:7.5,hi:22.0,lo:-14.0,pct:18,d:0,
+    vals:[-14,-2,-4,3,8,15,22,5,-8,-10,10,18,16,14,22,8,12,18,10,-5,8,2,22,15,8,-8],
+    events:[{i:6,t:'Peak bullish'},{i:24,t:'Neutral'}],
+    note:'AAII Bull-Bear at -8%: more bears than bulls — a mild contrarian positive. Historically, sub-zero readings predict above-average 12M forward returns of ~15%.',
+    imp:'Contrarian positive for near-term equity positioning. Extreme pessimism (<-20%) would be a stronger buy signal.'}
+};
+
+var INDICATOR_DATA = [
+  {cat:'Valuation',name:'CAPE (Shiller P/E)',cur:'36.8x',prev:'33.5x',pct:92,dir:'bearish',note:'Well above historical avg of 16-17x. Predicts ~3-5% real 10Y equity returns.',imp:'OW non-US equities. Headwind for US returns over 5-10Y.',def:'10-year inflation-adjusted trailing P/E, invented by Robert Shiller. Smooths earnings cyclicality.'},
+  {cat:'Valuation',name:'Equity Risk Premium',cur:'-0.6%',prev:'-0.2%',pct:5,dir:'bearish',note:'ERP = E/P minus 10Y real yield. Negative for first time since 2002.',imp:'Structural UW equities vs bonds at 5Y+ horizon.',def:'Expected excess return of equities over risk-free: Earnings yield (1/PE) minus real 10Y Treasury yield.'},
+  {cat:'Valuation',name:'HY Credit Spread (OAS)',cur:'295bp',prev:'380bp',pct:28,dir:'bearish',note:'28th percentile — historically tight. Minimal default compensation.',imp:'UW High Yield; prefer IG. Carry advantage compressed.',def:'Option-adjusted spread of HY bonds over Treasuries, measuring credit risk premium.'},
+  {cat:'Valuation',name:'TIPS Real Yield (10Y)',cur:'2.15%',prev:'1.38%',pct:82,dir:'neutral',note:'First time above 2% since 2008. Provides real compensation; attractive for fixed income.',imp:'OW TIPS. Real yields above 2% compress growth equity multiples.',def:'Yield on 10Y TIPS; represents real (inflation-adjusted) risk-free rate.'},
+  {cat:'Valuation',name:'EM vs DM CAPE Spread',cur:'23.5x',prev:'19.0x',pct:15,dir:'bullish',note:'EM at ~13x vs US at 37x — widest spread since 2002. Historically predictive of EM outperformance.',imp:'OW EM equity over 3-5Y horizon based on valuation alone.',def:'Difference between DM (primarily US) CAPE and EM CAPE. Wider spread favors EM on mean-reversion basis.'},
+  {cat:'Macro',name:'ISM Manufacturing PMI',cur:'50.3',prev:'46.0',pct:58,dir:'neutral',note:'First expansion reading in 24 months. Recovery in new orders and production.',imp:'Mild cyclical tailwind. Supports Value and industrials OW.',def:'Survey of manufacturing purchasing managers; above 50 = expansion, below 50 = contraction.'},
+  {cat:'Macro',name:'Core PCE (YoY)',cur:'2.6%',prev:'3.8%',pct:62,dir:'neutral',note:'Progress on disinflation. Sticky shelter and services remain above 2% target.',imp:'Supports Fed pause/cut scenario. Neutral for duration.',def:'PCE price index ex-food and energy — the Fed\'s preferred inflation gauge.'},
+  {cat:'Macro',name:'US Unemployment Rate',cur:'4.1%',prev:'3.4%',pct:45,dir:'neutral',note:'Rising from cycle lows. Still below long-run neutral (~4.5%). Labor market resilient.',imp:'No recession signal yet. Watch for rapid move above 4.5%.',def:'Percentage of labor force actively seeking employment; lagging economic indicator.'},
+  {cat:'Macro',name:'GDP Growth (QoQ Ann.)',cur:'2.3%',prev:'3.1%',pct:55,dir:'neutral',note:'Solid but decelerating. Consumer resilience offset by capex slowdown.',imp:'Neutral macro. Not supportive of either strong risk-on or risk-off.',def:'Annualized QoQ change in real GDP.'},
+  {cat:'Macro',name:'10Y Breakeven Inflation',cur:'2.30%',prev:'1.91%',pct:55,dir:'neutral',note:'Near Fed\'s 2.5% tolerance. Markets price inflation as contained.',imp:'Neutral TIPS/nominal. Above 2.5% = tilt TIPS OW.',def:'Difference between nominal 10Y yield and TIPS yield; market-implied 10Y avg inflation.'},
+  {cat:'Sentiment',name:'AAII Bull-Bear Spread',cur:'-8%',prev:'22%',pct:18,dir:'bullish',note:'More bears than bulls — mild contrarian positive. Sub-zero historically predicts above-avg forward returns.',imp:'Contrarian positive for equities near term.',def:'% bullish minus % bearish on stocks over next 6 months. Contrarian indicator at extremes.'},
+  {cat:'Sentiment',name:'VIX (Implied Vol)',cur:'19.9',prev:'12.4',pct:54,dir:'neutral',note:'Near long-run avg. No stress signal. Aug 2024 spike (to 65) normalized rapidly.',imp:'Neutral hedging. Watch sustained >25 as re-positioning signal.',def:'CBOE 30-day implied volatility of S&P 500 options. "Fear gauge" of equity markets.'},
+  {cat:'Sentiment',name:'BofA Fund Mgr Survey',cur:'OW Cash',prev:'OW Eq',pct:30,dir:'neutral',note:'Managers reduced equity exposure in Q4 2024. Cash above long-run norm.',imp:'Contrarian: high cash = potential fuel for equity rally.',def:'Monthly survey of ~200 fund managers tracking allocation, cash levels, expectations.'},
+  {cat:'Sentiment',name:'CFTC USD Net Longs',cur:'80th pct',prev:'45th pct',pct:80,dir:'bearish',note:'Speculative USD positioning crowded. Mean-reversion risk elevated.',imp:'OW Non-US vs US on unhedged basis. USD vulnerable to reversal.',def:'CFTC COT: net speculative positioning in US Dollar futures contracts.'},
+  {cat:'Momentum',name:'US vs Non-US Momentum',cur:'-2.3%',prev:'+4.2%',pct:30,dir:'bearish',note:'Non-US outperforming US in trailing 3M and 12M. Momentum favors international.',imp:'Confirms OW Non-US positioning. Watch for trend exhaustion.',def:'Rolling 12M relative return of MSCI World ex-US vs S&P 500, FX-adjusted.'},
+  {cat:'Momentum',name:'Value vs Growth Momentum',cur:'+3.1%',prev:'-5.6%',pct:65,dir:'bullish',note:'Value outperforming Growth YTD after years of underperformance. Trend accelerating.',imp:'OW Value. Momentum confirms valuation signal.',def:'Rolling 12M relative performance: Russell 1000 Value vs Russell 1000 Growth.'},
+  {cat:'Momentum',name:'EM vs DM Momentum',cur:'+1.8%',prev:'-4.0%',pct:52,dir:'neutral',note:'EM showing early signs of relative momentum recovery. Not yet confirmed.',imp:'Neutral; wait for confirmation before adding EM exposure.',def:'Trailing 12M relative return: MSCI EM vs MSCI World, USD terms.'},
+  {cat:'Momentum',name:'Credit Momentum',cur:'Tightening',prev:'Widening',pct:30,dir:'bearish',note:'Spread tightening momentum stalled. Risk of mean reversion at tight levels.',imp:'Fade credit tightening. Spreads have little room to compress further.',def:'Direction and rate of change in HY OAS over trailing 1-3 months.'},
+  {cat:'Momentum',name:'2s10s Curve Trend',cur:'Steepening',prev:'Inverted',pct:72,dir:'neutral',note:'Uninversion is a structural change. Steepening driven by long-end selloff.',imp:'Prefer intermediate over long duration. Steepening limits long bond upside.',def:'Trend in 2Y to 10Y yield spread; steepening can be bull (long rates fall) or bear (long rates rise).'},
+  {cat:'Momentum',name:'DXY Trend',cur:'Consolidating',prev:'Rallying',pct:75,dir:'neutral',note:'USD rally stalling after strong 2022-23. Trend following models are neutral.',imp:'Neutral USD tactical; structural headwinds building from fiscal/valuation.',def:'Directional trend of the US Dollar Index using moving averages and rate-of-change.'}
+];
+
+var ASSET_CONTENT = {
+  'sb':{title:'Stocks vs Bonds',brief:'Equity vs fixed income allocation driven primarily by Equity Risk Premium and valuation. Current ERP of -0.6% (earnings yield below real risk-free rate) is the strongest argument for bonds over equities since 2002.',
+    events:[{d:'Mar 2023',e:'SVB collapse triggers flight to quality; Treasuries rally 40bp in 1 week'},{d:'Oct 2023',e:'10Y hits 5% — highest since 2007; equity/bond correlation flips positive'},{d:'Sep 2024',e:'Fed delivers first rate cut (50bp); markets reprice rate path'},{d:'Nov 2024',e:'Election results trigger equity rally and bond selloff simultaneously'},{d:'Feb 2025',e:'Tariff announcements create cross-asset volatility; bonds underperform'}],
+    watch:['ERP approaching zero is structural headwind for equities','Yield curve steepening monitors recession risk','Watch for credit spread widening as early recession indicator','Fed balance sheet normalization adds supply pressure to bonds']},
+  'us':{title:'US vs Non-US Equity',brief:'The US CAPE premium over non-US markets (37x vs 13-18x) is near record highs. USD strength is an additional headwind for unhedged non-US returns, though the structural valuation case for non-US is compelling.',
+    events:[{d:'2023',e:'USD strength suppressed non-US returns despite better local performance'},{d:'Jan 2024',e:'Europe begins to outperform on manufacturing recovery signal'},{d:'Q3 2024',e:'Yen carry unwind causes sharp non-US drawdown; recovers quickly'},{d:'Q4 2024',e:'US exceptionalism trade resumes; AI capex narrative concentrated in US'},{d:'Feb 2025',e:'Trade tariff escalation disproportionately impacts export-heavy non-US markets'}],
+    watch:['USD trajectory: strong dollar hurts unhedged international returns','AI capex cycle duration: concentrated in US mega-cap','European bank recapitalization and fiscal stimulus progress','EM central bank policy divergence from Fed']},
+  'em':{title:'EM vs DM Equity',brief:'Emerging markets vs developed markets. EM trades at a historically wide discount (CAPE 13x vs DM 25x). EM growth premium is recovering. Key risks: USD strength, China uncertainty, geopolitical tensions.',
+    events:[{d:'2023',e:'China reopening disappoints; EM underperforms despite cheap valuation'},{d:'Mar 2024',e:'India surpasses Hong Kong as 4th largest global equity market'},{d:'Aug 2024',e:'PBOC stimulus announcement drives brief EM rally'},{d:'Q4 2024',e:'China stimulus package boosts EM 12%; sustainability questioned'},{d:'Feb 2025',e:'DeepSeek AI model challenges US AI dominance; China tech re-rates'}],
+    watch:['China stimulus effectiveness and property sector stabilization','India infrastructure and manufacturing cycle','EM central bank credibility and currency stability','Commodity cycle: EM exporters benefit from sustained demand']},
+  'lg':{title:'Large vs Small Cap',brief:'Small caps trade at historically wide discounts to large caps (P/B spread at 85th percentile). However, small caps are more rate-sensitive and benefit more from domestic economic resilience.',
+    events:[{d:'Oct 2023',e:'Rate spike crushes small cap; Russell 2000 down 13% vs S&P -6%'},{d:'Jul 2024',e:'Rate cut expectations trigger violent small cap rotation; +10% in 2 weeks'},{d:'Nov 2024',e:'Election results — deregulation focus — boost small caps'},{d:'Q1 2025',e:'Small cap rally stalls as higher-for-longer narrative returns'}],
+    watch:['Fed rate trajectory: rate cuts disproportionately benefit small cap','Regional bank health: small cap primary lending channel','Domestic economic momentum vs external (large caps more global)','P/B discount vs historical mean at 85th percentile']},
+  'vg':{title:'Value vs Growth',brief:'P/E spreads and real yield environment drive style factor. Value trades at historically wide discount; growth remains expensive on DCF basis with real yields above 2%. Momentum has turned Value-favorable.',
+    events:[{d:'2023',e:'Growth dramatically outperforms driven by AI narrative (NVDA +240%)'},{d:'Q3 2024',e:'Value rotation as rate cuts reduce growth long-duration premium'},{d:'Q4 2024',e:'Mag-7 concentration risk highlighted; equal-weight outperforms'},{d:'2025',e:'Value outperforming YTD; materials, financials lead'}],
+    watch:['Real yield direction: rising real yields hurt long-duration growth assets','Earnings breadth: value outperforms when earnings are broad-based','AI capex ROI: market will demand returns on $1T+ AI investment','Mag-7 concentration: top-10 S&P at record 35% weight']},
+  'hy':{title:'HY vs IG Credit',brief:'Credit quality allocation. HY spreads at 28th percentile (295bp) offer limited compensation for default risk. Default rate rising (3.2%) with CCC tier most stressed. Prefer up-in-quality positioning.',
+    events:[{d:'Mar 2023',e:'SVB regional bank crisis; brief IG/HY spread blow-out, rapid normalization'},{d:'2024',e:'Tight spread regime persists despite rising rates; carry trade crowded'},{d:'Q4 2024',e:'Leveraged loan market shows stress; some CLO tranches repriced'},{d:'Feb 2025',e:'HY issuance surge at tight spreads; investors reaching for yield'}],
+    watch:['Default rate trajectory: rising toward 4-5% signals spread widening risk','CCC-rated stress: first cracks appear in most speculative grade','Private credit competition compressing public HY spreads artificially','M&A wave could re-lever investment-grade companies rapidly']},
+  'dur':{title:'Long vs Short Duration',brief:'Real yields at 2.15% provide genuine compensation for duration risk. Curve steepening creates headwind for 10Y+ bonds. Prefer intermediate (5-7Y) duration for best risk-adjusted carry.',
+    events:[{d:'2023',e:'Fastest tightening cycle in 40 years: 500bp Fed hikes crush bond returns'},{d:'Oct 2023',e:'10Y peaks at 5.02%; long bonds in worst multi-year drawdown in history'},{d:'Sep 2024',e:'Fed begins cutting cycle; long bonds rally 10% from lows'},{d:'Q4 2024',e:'Fiscal concerns and term premium re-rating push 10Y back toward 4.5%+'},{d:'Feb 2025',e:'Tariff-driven inflation fears pressure long end; curve steepens'}],
+    watch:['Term premium normalization: markets demanding more for long-end uncertainty','Fed path: pace of rate cuts determines short-end rally potential','Inflation persistence: core PCE at 2.6% keeps Fed cautious','Foreign demand for Treasuries: Japan policy normalization reduces buying']},
+  'emfx':{title:'EM Local vs Hard Currency',brief:'Within EM fixed income, local currency bonds offer higher carry and real yield. Current EM-DM real yield spread favors local. USD trend is the key risk factor.',
+    events:[{d:'2023',e:'Strong USD suppressed EM local returns despite high local yields'},{d:'2024',e:'Brazil, Mexico high-carry currencies attract flows; FX positive contributors'},{d:'Aug 2024',e:'EM FX selloff during yen carry unwind; quickly recovered'},{d:'Q4 2024',e:'Post-election USD rally hurts EM local; Mexico peso hard hit by tariff risk'},{d:'2025',e:'EM central banks cutting ahead of Fed; local yield advantage compresses'}],
+    watch:['USD trajectory is the dominant factor for EM local returns','Country-specific political risk (Mexico, Brazil, South Africa)','Commodity cycle: EM exporters (Brazil, Chile, Indonesia) benefit','EM central bank credibility: early cutters risk FX depreciation']},
+  'fx':{title:'USD Short vs Long',brief:'USD appears overvalued by 8-12% on PPP and REER models. CFTC speculative longs at 80th percentile. Near-term, rate differentials still favor USD, but structural headwinds building.',
+    events:[{d:'Sep 2022',e:'DXY peaks at 114.7 — strongest since 2002; coordinated G7 concern'},{d:'2023',e:'USD holds elevated levels despite Fed nearing end of hike cycle'},{d:'2024',e:'USD range-bound 100-107; rate differential keeps USD supported'},{d:'Nov 2024',e:'Election USD rally takes DXY to 110; tariff premium priced in'},{d:'Feb 2025',e:'USD weakens slightly as growth concerns offset rate support'}],
+    watch:['Fed-ECB/BOJ rate differential: key driver of USD technical support','CFTC positioning: crowded USD longs at risk of unwind','US fiscal deficit trajectory: structural USD negative long-term','Trade policy: tariffs initially USD-positive, then growth-negative']}
+};
+
+// ===== STATE =====
+var scores = {};
+var weights = {wF:25, wS:10, wV:55, wM:10};
+var currentHz = '5y';
+var activePort = '6040';
+var sigInit = false;
+var histInit = false;
+var indInit = false;
+var assetInit = false;
+var methInit = false;
+var currentHistKey = '10y';
+var currentAsset = 'sb';
+var currentIndCat = 'All';
+
+// ===== CORE FUNCTIONS =====
+function comp(dimId) {
+  var sc = scores[dimId];
+  if (!sc) return 0;
+  var w = weights;
+  var total = w.wF + w.wS + w.wV + w.wM;
+  if (!total) return 0;
+  return (w.wF * sc.f + w.wS * sc.s + w.wV * sc.v + w.wM * sc.m) / total;
+}
+
+function owuw(dimId) {
+  var d = DIMS.find(function(x){ return x.id === dimId; });
+  var s = comp(dimId);
+  if (s >= 0) return {ow: d.bull, uw: d.bear, col: '#22c55e', s: s};
+  return {ow: d.bear, uw: d.bull, col: '#ef4444', s: s};
+}
+
+function portTilt(row) {
+  var c = comp(row.dim);
+  var t = row.dir * c * row.sens;
+  return Math.max(-15, Math.min(15, Math.round(t * 10) / 10));
+}
+
+function fmtScore(s) { return (s > 0 ? '+' : '') + s.toFixed(1); }
+
+function conviction(s) {
+  var a = Math.abs(s);
+  if (a >= 6) return 'Strong';
+  if (a >= 3) return 'Moderate';
+  return 'Slight';
+}
+
+// Dynamic headline builder
+function buildHeadline() {
+  var sorted = DIMS.map(function(d){ return {d:d, s:comp(d.id)}; })
+    .sort(function(a,b){ return Math.abs(b.s)-Math.abs(a.s); });
+  var top3 = sorted.slice(0,3);
+  var totalScore = DIMS.reduce(function(acc,d){ return acc + comp(d.id); }, 0) / DIMS.length;
+  var stanceWord = totalScore > 1.5 ? 'Constructive' : totalScore < -1.5 ? 'Defensive' : 'Mixed';
+  // Build headline from top trades
+  var trades = top3.map(function(item){
+    var o = owuw(item.d.id);
+    return 'OW ' + o.ow;
+  });
+  // Find dominant theme
+  var themes = [];
+  var sbScore = comp('sb'), usScore = comp('us'), hyScore = comp('hy'), durScore = comp('dur');
+  if (sbScore < -3) themes.push('Bonds over Equities');
+  if (Math.abs(usScore) > 3) themes.push(usScore < 0 ? 'International over US' : 'US over International');
+  if (hyScore < -3) themes.push('Quality Credit Bias');
+  if (durScore > 3) themes.push('Long Duration');
+  var themeStr = themes.length ? themes.join(' | ') : trades.join(', ');
+  return {
+    headline: stanceWord + ': ' + themeStr,
+    sub: trades.join('  ·  '),
+    score: totalScore,
+    stance: stanceWord
+  };
+}
+
+// ===== HORIZON & TAB SWITCHING =====
+function setHz(hz) {
+  currentHz = hz;
+  var hd = HORIZONS[hz];
+  weights = {wF: hd.wF, wS: hd.wS, wV: hd.wV, wM: hd.wM};
+  var defs = HZ_DEFAULTS[hz];
+  DIMS.forEach(function(d) {
+    var def = defs[d.id];
+    scores[d.id] = def ? {f:def[0], s:def[1], v:def[2], m:def[3]} : {f:0,s:0,v:0,m:0};
+  });
+  document.querySelectorAll('.hz-btn').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.querySelector('.hz-btn[data-hz="' + hz + '"]');
+  if (btn) btn.classList.add('active');
+  if (sigInit) updateAllSliders();
+  renderDashboard();
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-pane').forEach(function(el){ el.style.display='none'; });
+  var pane = document.getElementById('tab-' + tab);
+  if (pane) pane.style.display = 'block';
+  document.querySelectorAll('.nav-tab').forEach(function(el){ el.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  if (tab === 'signals'   && !sigInit)  { renderSignals();     sigInit = true; }
+  if (tab === 'history'   && !histInit) { renderHistory();     histInit = true; }
+  if (tab === 'indicators'&& !indInit)  { renderIndicators();  indInit = true; }
+  if (tab === 'assetviews'&& !assetInit){ renderAssetViews();  assetInit = true; }
+  if (tab === 'methodology'&&!methInit) { renderMethodology(); methInit = true; }
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  renderHzBar();
+  renderHeadline();
+  renderConviction();
+  renderNarrative();
+  renderMetrics();
+  renderScorecard();
+  renderPortfolio();
+}
+
+function renderHzBar() {
+  var hd = HORIZONS[currentHz];
+  var html = '<div class="hz-bar"><span class="hz-label">Horizon</span><div class="hz-btns">';
+  Object.keys(HORIZONS).forEach(function(k) {
+    html += '<button class="hz-btn' + (k===currentHz?' active':'') + '" data-hz="' + k + '" onclick="setHz(\'' + k + '\')">' + k.toUpperCase() + '</button>';
+  });
+  html += '</div><span class="hz-wt-info">Weights: F=' + hd.wF + '% S=' + hd.wS + '% V=' + hd.wV + '% M=' + hd.wM + '%</span></div>';
+  var el = document.getElementById('hz-bar-el');
+  if (el) el.innerHTML = html;
+}
+
+function renderHeadline() {
+  var hl = buildHeadline();
+  var col = hl.score > 0.5 ? '#22c55e' : hl.score < -0.5 ? '#ef4444' : '#eab308';
+  var bgCol = hl.score > 0.5 ? 'rgba(34,197,94,.08)' : hl.score < -0.5 ? 'rgba(239,68,68,.08)' : 'rgba(234,179,8,.08)';
+  var html = '<div class="headline-bar" style="border-left:4px solid ' + col + ';background:' + bgCol + '">';
+  html += '<div class="headline-main" style="color:' + col + '">' + hl.headline + '</div>';
+  html += '<div class="headline-sub">';
+  html += '<span class="hz-pill">' + HORIZONS[currentHz].label + '</span>';
+  html += '<span class="score-pill" style="background:' + col + '20;color:' + col + '">Avg Score: ' + fmtScore(hl.score) + '</span>';
+  html += '<span style="color:var(--t3)">' + hl.sub + '</span>';
+  html += '</div></div>';
+  var el = document.getElementById('headline-el');
+  if (el) el.innerHTML = html;
+}
+
+function renderConviction() {
+  var sorted = DIMS.map(function(d){ return {d:d, s:comp(d.id), abs:Math.abs(comp(d.id))}; })
+    .sort(function(a,b){ return b.abs - a.abs; }).slice(0, 3);
+  var html = '<div class="conv-cards">';
+  var ranks = ['#1 Highest Conviction', '#2 High Conviction', '#3 High Conviction'];
+  sorted.forEach(function(item, i) {
+    var o = owuw(item.d.id);
+    var cv = conviction(o.s);
+    var bgc = o.col + '12';
+    var bdc = o.col + '60';
+    var ct = CONV_TEXT[item.d.id];
+    var why = ct ? (o.s >= 0 ? ct.pos : ct.neg) : '';
+    html += '<div class="conv-card" style="background:' + bgc + ';border-color:' + bdc + '">';
+    html += '<div class="conv-card-rank" style="color:' + o.col + '">' + ranks[i] + '</div>';
+    html += '<div class="conv-card-trade" style="color:' + o.col + '">OW ' + o.ow + '</div>';
+    html += '<div class="conv-card-trade" style="color:var(--t3);font-size:12px;font-weight:700">UW ' + o.uw + '</div>';
+    html += '<div class="conv-card-dim">' + item.d.label + ' &nbsp;|&nbsp; ' + cv + '</div>';
+    html += '<div class="conv-card-score" style="color:' + o.col + '">' + fmtScore(o.s) + '</div>';
+    html += '<div class="conv-card-why"><strong>Why this conviction:</strong>' + why + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  var el = document.getElementById('conviction-el');
+  if (el) el.innerHTML = '<div class="conv-section">' + html + '</div>';
+}
+
+function renderNarrative() {
+  var totalScore = DIMS.reduce(function(acc,d){ return acc + comp(d.id); }, 0) / DIMS.length;
+  var stance = totalScore > 1.5 ? 'risk-on' : totalScore < -1.5 ? 'risk-off' : 'mixed / cautiously risk-off';
+  var hz = HORIZONS[currentHz].label;
+  var sorted = DIMS.map(function(d){ return {d:d, s:comp(d.id)}; }).sort(function(a,b){ return Math.abs(b.s)-Math.abs(a.s); });
+  var top3 = sorted.slice(0,3);
+  var hd = HORIZONS[currentHz];
+  var p1 = 'Over the <strong>' + hz + '</strong> horizon, our 9-dimension model reflects a <strong>' + stance + '</strong> regime (avg score ' + fmtScore(totalScore) + '). ';
+  p1 += 'At this horizon, valuation signals carry ' + hd.wV + '% weight (highest in the mix), with sentiment at ' + hd.wS + '% and momentum at ' + hd.wM + '% — reflecting the empirical evidence that valuation is the dominant long-horizon predictor.';
+  var tradeParts = top3.map(function(item) {
+    var o = owuw(item.d.id);
+    return '<strong>OW ' + o.ow + ' / UW ' + o.uw + '</strong> (' + item.d.label + ', score ' + fmtScore(item.s) + ')';
+  });
+  var p2 = 'Highest conviction positions: ' + tradeParts.join('; ') + '. These reflect convergence of fundamental, valuation, and momentum signals — a higher-confidence signal set than any single category alone.';
+  var p3 = 'Key risks to monitor: USD strength challenging EM FX and Non-US equity returns; tariff-driven inflation resurgence compressing duration; credit spread normalization from historically tight levels; AI capex cycle durability supporting US large-cap concentration risk.';
+  var el = document.getElementById('narrative-body');
+  if (el) el.innerHTML = '<p>' + p1 + '</p><p>' + p2 + '</p><p>' + p3 + '</p>';
+}
+
+function renderMetrics() {
+  var html = '';
+  METRICS.forEach(function(m) {
+    html += '<div class="metric-row"><span class="metric-name">' + m.n + '</span><div style="text-align:right"><span class="metric-val">' + m.v + '</span><span class="metric-note">' + m.note + '</span></div></div>';
+  });
+  var el = document.getElementById('metrics-inner');
+  if (el) el.innerHTML = html;
+}
+
+function renderScorecard() {
+  var html = '';
+  DIMS.forEach(function(d) {
+    var o = owuw(d.id);
+    var sc = scores[d.id];
+    var abs = Math.abs(o.s);
+    var cv = conviction(o.s);
+    var cvBg = o.col + (abs >= 6 ? '30' : abs >= 3 ? '20' : '18');
+    // Slider fill: center at 50%, fill pct = |score|/10 * 50
+    var fillPct = Math.min(abs / 10 * 50, 50);
+    var fillStyle = o.s >= 0
+      ? 'left:50%;width:' + fillPct.toFixed(1) + '%;background:' + o.col
+      : 'left:' + (50 - fillPct).toFixed(1) + '%;width:' + fillPct.toFixed(1) + '%;background:' + o.col;
+    // Signal pills
+    var pills = [['F',sc.f,'Fundamental'],['S',sc.s,'Sentiment'],['V',sc.v,'Valuation'],['M',sc.m,'Momentum']].map(function(sig) {
+      var c = sig[1] >= 0 ? '#22c55e' : '#ef4444';
+      return '<span class="sig-pill" title="' + sig[2] + '"><span class="sig-pill-val" style="color:' + c + '">' + sig[0] + ': ' + fmtScore(sig[1]) + '</span></span>';
+    }).join('');
+    html += '<div class="dim-row">';
+    // Header row
+    html += '<div class="dim-row-hdr">';
+    html += '<span class="dim-row-name">' + d.label + '</span>';
+    html += '<span class="dim-row-stance" style="color:' + o.col + '">OW ' + o.ow + ' &nbsp;/&nbsp; UW ' + o.uw + '</span>';
+    html += '<span class="dim-row-score" style="color:' + o.col + '">' + fmtScore(o.s) + '</span>';
+    html += '<span class="dim-row-cv" style="background:' + cvBg + ';color:' + o.col + '">' + cv + '</span>';
+    html += '</div>';
+    // Slider track
+    html += '<div class="slider-track-wrap">';
+    html += '<div class="slider-end-lbl">← OW ' + d.bear + '</div>';
+    html += '<div class="slider-track"><div class="slider-center-mark"></div><div class="slider-fill" style="' + fillStyle + '"></div></div>';
+    html += '<div class="slider-end-lbl right">OW ' + d.bull + ' →</div>';
+    html += '</div>';
+    // Signal breakdown
+    html += '<div class="sig-breakdown">' + pills + '</div>';
+    html += '</div>';
+  });
+  var el = document.getElementById('scorecard-inner');
+  if (el) el.innerHTML = html;
+}
+
+// ===== PORTFOLIO =====
+function setPort(k) { activePort = k; renderPortfolio(); }
+
+function renderPortfolio() {
+  var btnHtml = '<div class="port-tabs">';
+  ['8020','6040','4060'].forEach(function(k) {
+    btnHtml += '<button class="port-tab-btn' + (k===activePort?' active':'') + '" onclick="setPort(\'' + k + '\')">' + PORTFOLIOS[k].label + '</button>';
+  });
+  btnHtml += '</div>';
+  var el1 = document.getElementById('port-tabs-row');
+  if (el1) el1.innerHTML = btnHtml;
+  var p = PORTFOLIOS[activePort];
+  var el2 = document.getElementById('port-obj');
+  if (el2) el2.innerHTML = '<div class="port-obj">' + p.obj + '</div>';
+  var html = '<table class="port-table"><thead><tr><th>Asset Class</th><th>Benchmark %</th><th>Signal Tilt</th><th>Recommended %</th><th>OW / UW Direction</th></tr></thead><tbody>';
+  var lastCat = '';
+  p.rows.forEach(function(row) {
+    if (row.cat !== lastCat) {
+      var catLabel = row.cat==='eq' ? 'EQUITY' : row.cat==='fi' ? 'FIXED INCOME' : 'ALTERNATIVES';
+      html += '<tr class="cat-row"><td colspan="5">▸ ' + catLabel + '</td></tr>';
+      lastCat = row.cat;
+    }
+    var t = portTilt(row);
+    var rec = Math.max(0, row.bm + t);
+    var tCol = t > 0 ? '#22c55e' : t < 0 ? '#ef4444' : '#94a3b8';
+    var o = owuw(row.dim);
+    html += '<tr><td>' + row.name + '</td><td>' + row.bm.toFixed(1) + '%</td>';
+    html += '<td style="color:' + tCol + ';font-weight:700">' + (t>0?'+':'') + t.toFixed(1) + '%</td>';
+    html += '<td style="font-weight:700">' + rec.toFixed(1) + '%</td>';
+    html += '<td style="font-size:10px;color:' + tCol + '">OW ' + o.ow + ' / UW ' + o.uw + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  var el3 = document.getElementById('port-table-wrap');
+  if (el3) el3.innerHTML = html;
+  // Consistency checks
+  var sb = comp('sb'), hy = comp('hy'), dur = comp('dur');
+  var checks = [];
+  if (sb < -1 && hy < -1) checks.push({ok:true, t:'Risk-off consistent: Equity UW + Credit UW confirmed'});
+  if (sb > 1 && hy > 1)   checks.push({ok:true, t:'Risk-on consistent: Equity OW + Credit OW confirmed'});
+  if (sb > 1 && hy < -2)  checks.push({ok:false,t:'Conflict: Equity OW but Credit UW — review risk assumptions'});
+  if (sb < -1 && dur > 1) checks.push({ok:true, t:'Quality tilt: Equity UW + Duration OW = defensive posture'});
+  if (hy < -2 && dur > 1) checks.push({ok:true, t:'Up-in-quality: UW HY + OW Duration = credit risk management'});
+  var cHtml = '<div class="consistency-box"><div class="consistency-ttl">Cross-Asset Consistency</div>';
+  checks.forEach(function(c) { cHtml += '<div class="consistency-item ' + (c.ok?'ok':'warn') + '">' + (c.ok?'✓ ':'⚠ ') + c.t + '</div>'; });
+  if (!checks.length) cHtml += '<div class="consistency-item">No strong cross-asset signals at current levels</div>';
+  cHtml += '</div>';
+  var el4 = document.getElementById('port-consistency');
+  if (el4) el4.innerHTML = cHtml;
+}
+
+// ===== SIGNAL EDITOR =====
+function renderSignals() {
+  var html = '<div class="sig-editor-grid">';
+  DIMS.forEach(function(d) {
+    var sc = scores[d.id];
+    var o = owuw(d.id);
+    var cv = comp(d.id);
+    html += '<div class="sig-card" id="sigcard-' + d.id + '">';
+    html += '<div class="sig-card-hdr"><span class="sig-card-name">' + d.label + '</span><span class="sig-score-big" id="sigsc-' + d.id + '" style="color:' + o.col + '">' + fmtScore(cv) + '</span></div>';
+    html += '<div class="sig-stance" id="sigst-' + d.id + '" style="background:' + o.col + '18;color:' + o.col + '">OW ' + o.ow + ' / UW ' + o.uw + '</div>';
+    ['f','s','v','m'].forEach(function(sig, i) {
+      var labels = ['Fundamental','Sentiment','Valuation','Momentum'];
+      html += '<div class="slider-wrap"><div class="slider-lbl"><span>' + labels[i] + '</span><span class="slider-lbl-val" id="slv-' + d.id + '-' + sig + '">' + sc[sig].toFixed(0) + '</span></div>';
+      html += '<input type="range" min="-10" max="10" step="0.5" value="' + sc[sig] + '" oninput="updateScore(\'' + d.id + '\',\'' + sig + '\',+this.value)"></div>';
+    });
+    html += '<div class="sig-drv">' + d.drivers + '</div></div>';
+  });
+  html += '</div>';
+  var el = document.getElementById('signals-content');
+  if (el) el.innerHTML = html;
+}
+
+function updateScore(dimId, sig, val) {
+  scores[dimId][sig] = val;
+  var vEl = document.getElementById('slv-' + dimId + '-' + sig);
+  if (vEl) vEl.textContent = val.toFixed(0);
+  var o = owuw(dimId);
+  var scEl = document.getElementById('sigsc-' + dimId);
+  if (scEl) { scEl.textContent = fmtScore(o.s); scEl.style.color = o.col; }
+  var stEl = document.getElementById('sigst-' + dimId);
+  if (stEl) { stEl.textContent = 'OW ' + o.ow + ' / UW ' + o.uw; stEl.style.color = o.col; stEl.style.background = o.col + '18'; }
+  renderDashboard();
+}
+
+function updateAllSliders() {
+  if (!sigInit) return;
+  DIMS.forEach(function(d) {
+    var sc = scores[d.id];
+    ['f','s','v','m'].forEach(function(sig) {
+      var vEl = document.getElementById('slv-' + d.id + '-' + sig);
+      if (vEl) vEl.textContent = sc[sig].toFixed(0);
+    });
+    var o = owuw(d.id);
+    var scEl = document.getElementById('sigsc-' + d.id);
+    if (scEl) { scEl.textContent = fmtScore(o.s); scEl.style.color = o.col; }
+    var stEl = document.getElementById('sigst-' + d.id);
+    if (stEl) { stEl.textContent = 'OW ' + o.ow + ' / UW ' + o.uw; stEl.style.color = o.col; stEl.style.background = o.col + '18'; }
+  });
+}
+
+// ===== MARKET HISTORY =====
+function renderHistory() {
+  var listHtml = '';
+  Object.keys(HIST_DATA).forEach(function(k) {
+    var h = HIST_DATA[k];
+    listHtml += '<div class="hist-list-item' + (k===currentHistKey?' active':'') + '" onclick="showHist(\'' + k + '\')">';
+    listHtml += '<div class="hist-list-name">' + h.label + '</div>';
+    listHtml += '<div class="hist-list-val">' + h.cur + (h.unit?' '+h.unit:'') + '</div>';
+    listHtml += '<div class="hist-list-sub">' + h.pct + 'th pct of range</div></div>';
+  });
+  var el = document.getElementById('hist-list');
+  if (el) el.innerHTML = listHtml;
+  showHist(currentHistKey);
+}
+
+function showHist(key) {
+  currentHistKey = key;
+  document.querySelectorAll('.hist-list-item').forEach(function(el, i) {
+    var k = Object.keys(HIST_DATA)[i];
+    el.classList.toggle('active', k === key);
+  });
+  var h = HIST_DATA[key];
+  var chg1m = h.vals.length >= 2 ? (h.vals[h.vals.length-1] - h.vals[h.vals.length-2]) : 0;
+  var pctCol = h.pct > 75 ? '#ef4444' : h.pct > 50 ? '#eab308' : '#22c55e';
+  var statsHtml = '<div class="hist-stats">';
+  statsHtml += '<div class="hist-stat"><div class="hist-stat-val" style="color:var(--accent)">' + h.cur + (h.unit?' '+h.unit:'') + '</div><div class="hist-stat-lbl">Current</div></div>';
+  statsHtml += '<div class="hist-stat"><div class="hist-stat-val" style="color:' + pctCol + '">' + h.pct + 'th</div><div class="hist-stat-lbl">Percentile</div></div>';
+  statsHtml += '<div class="hist-stat"><div class="hist-stat-val" style="color:#eab308">' + h.avg + '</div><div class="hist-stat-lbl">Average</div></div>';
+  statsHtml += '<div class="hist-stat"><div class="hist-stat-val">' + h.hi + '</div><div class="hist-stat-lbl">Period High</div></div>';
+  statsHtml += '<div class="hist-stat"><div class="hist-stat-val">' + h.lo + '</div><div class="hist-stat-lbl">Period Low</div></div>';
+  statsHtml += '<div class="hist-stat"><div class="hist-stat-val" style="color:' + (chg1m>=0?'#22c55e':'#ef4444') + '">' + (chg1m>=0?'+':'') + chg1m.toFixed(h.d) + '</div><div class="hist-stat-lbl">1M Change</div></div>';
+  statsHtml += '</div>';
+  var mainHtml = statsHtml + '<div class="hist-chart-area"><canvas id="hist-canvas" height="220"></canvas></div>';
+  mainHtml += '<div class="hist-note"><strong>Commentary:</strong> ' + h.note + '<br><br><strong>Investment Implication:</strong> ' + h.imp + '</div>';
+  var el = document.getElementById('hist-main');
+  if (el) { el.innerHTML = mainHtml; setTimeout(function(){ drawHistChart(key); }, 50); }
+}
+
+function drawHistChart(key) {
+  var h = HIST_DATA[key];
+  var canvas = document.getElementById('hist-canvas');
+  if (!canvas) return;
+  var container = canvas.parentElement;
+  var W = container.clientWidth - 32;
+  var H = 220;
+  canvas.width = W; canvas.height = H;
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  var pad = {t:30, r:20, b:40, l:52};
+  var cW = W - pad.l - pad.r;
+  var cH = H - pad.t - pad.b;
+  var vals = h.vals;
+  var n = vals.length;
+  var minV = Math.min.apply(null, vals);
+  var maxV = Math.max.apply(null, vals);
+  var margin = (maxV - minV) * 0.1 || 0.5;
+  minV -= margin; maxV += margin;
+  var range = maxV - minV;
+  function xS(i){ return pad.l + (i/(n-1))*cW; }
+  function yS(v){ return pad.t + cH - ((v-minV)/range)*cH; }
+  for (var gi = 0; gi <= 4; gi++) {
+    var gy = pad.t + (gi/4)*cH;
+    var gv = maxV - (gi/4)*range;
+    ctx.strokeStyle = '#2a3558'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.l, gy); ctx.lineTo(pad.l+cW, gy); ctx.stroke();
+    ctx.fillStyle = '#475569'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+    ctx.fillText(gv.toFixed(h.d), pad.l-6, gy+4);
+  }
+  var avgY = yS(h.avg);
+  ctx.strokeStyle = '#eab308'; ctx.lineWidth = 1; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(pad.l, avgY); ctx.lineTo(pad.l+cW, avgY); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#eab308'; ctx.font = '9px Inter'; ctx.textAlign = 'left';
+  ctx.fillText('avg', pad.l+4, avgY-3);
+  ctx.beginPath();
+  ctx.moveTo(xS(0), yS(vals[0]));
+  for (var i = 1; i < n; i++) ctx.lineTo(xS(i), yS(vals[i]));
+  ctx.lineTo(xS(n-1), pad.t+cH); ctx.lineTo(xS(0), pad.t+cH); ctx.closePath();
+  var grad = ctx.createLinearGradient(0, pad.t, 0, pad.t+cH);
+  grad.addColorStop(0, 'rgba(59,130,246,0.35)'); grad.addColorStop(1, 'rgba(59,130,246,0.03)');
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.beginPath(); ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2.5;
+  ctx.moveTo(xS(0), yS(vals[0]));
+  for (var i2 = 1; i2 < n; i2++) ctx.lineTo(xS(i2), yS(vals[i2]));
+  ctx.stroke();
+  if (h.events) {
+    h.events.forEach(function(ev) {
+      if (ev.i < n) {
+        var ex = xS(ev.i);
+        ctx.strokeStyle = '#f97316'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.moveTo(ex, pad.t+4); ctx.lineTo(ex, pad.t+cH); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#f97316'; ctx.font = 'bold 8px Inter'; ctx.textAlign = 'center';
+        ctx.fillText(ev.t, ex, pad.t+2);
+      }
+    });
+  }
+  ctx.beginPath(); ctx.fillStyle = '#22c55e';
+  ctx.arc(xS(n-1), yS(vals[n-1]), 5, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#0b0e1a'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#475569'; ctx.font = '9px Inter'; ctx.textAlign = 'center';
+  var step = Math.max(1, Math.floor(n/8));
+  for (var li = 0; li < n; li += step) ctx.fillText(HIST_LABELS[li], xS(li), pad.t+cH+16);
+  ctx.fillText(HIST_LABELS[n-1], xS(n-1), pad.t+cH+16);
+}
+
+// ===== INDICATORS =====
+function renderIndicators() {
+  var cats = ['All','Valuation','Macro','Sentiment','Momentum'];
+  var fHtml = '<div class="ind-filters">';
+  cats.forEach(function(c) {
+    fHtml += '<button class="ind-filter' + (c===currentIndCat?' active':'') + '" onclick="filterInd(\'' + c + '\')">' + c + '</button>';
+  });
+  fHtml += '</div>';
+  var el1 = document.getElementById('ind-filters');
+  if (el1) el1.innerHTML = fHtml;
+  renderIndTable();
+}
+
+function filterInd(cat) {
+  currentIndCat = cat;
+  document.querySelectorAll('.ind-filter').forEach(function(b){ b.classList.toggle('active', b.textContent===cat); });
+  renderIndTable();
+}
+
+function renderIndTable() {
+  var data = currentIndCat==='All' ? INDICATOR_DATA : INDICATOR_DATA.filter(function(d){ return d.cat===currentIndCat; });
+  var html = '<table class="ind-table"><thead><tr><th>Cat</th><th>Indicator</th><th>Current</th><th>Signal</th><th>Pct Rank</th><th>Note</th><th>Implication</th><th>?</th></tr></thead><tbody>';
+  data.forEach(function(d) {
+    var col = d.dir==='bullish' ? '#22c55e' : d.dir==='bearish' ? '#ef4444' : '#eab308';
+    var pctBg = d.pct>75?'#ef4444':d.pct>50?'#eab308':'#22c55e';
+    var pctFill = '<div class="pct-bar-outer"><div class="pct-bar-inner" style="width:' + d.pct + '%;background:' + pctBg + '"></div></div> ' + d.pct + '%';
+    var tt = '<div class="tooltip-wrap"><button class="tooltip-btn">?</button><div class="tooltip-content"><strong>' + d.name + '</strong><br>' + d.def + '</div></div>';
+    html += '<tr><td style="color:var(--t3);font-size:9px">' + d.cat + '</td><td style="font-weight:700">' + d.name + '</td>';
+    html += '<td style="font-weight:700;color:var(--accent)">' + d.cur + '</td>';
+    html += '<td><span style="font-size:10px;font-weight:700;color:' + col + '">' + d.dir.toUpperCase() + '</span></td>';
+    html += '<td>' + pctFill + '</td><td style="max-width:170px;font-size:11px;color:var(--t2)">' + d.note + '</td>';
+    html += '<td style="max-width:170px;font-size:11px;color:var(--t2)">' + d.imp + '</td><td>' + tt + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  var el = document.getElementById('ind-table-wrap');
+  if (el) el.innerHTML = html;
+}
+
+// ===== ASSET VIEWS =====
+function renderAssetViews() {
+  var tabHtml = '';
+  DIMS.forEach(function(d) {
+    tabHtml += '<button class="asset-tab-btn' + (d.id===currentAsset?' active':'') + '" onclick="showAsset(\'' + d.id + '\')">' + d.label + '</button>';
+  });
+  var el1 = document.getElementById('asset-tabs');
+  if (el1) el1.innerHTML = tabHtml;
+  showAsset(currentAsset);
+}
+
+function showAsset(id) {
+  currentAsset = id;
+  document.querySelectorAll('.asset-tab-btn').forEach(function(b, i) { b.classList.toggle('active', DIMS[i].id===id); });
+  var d = DIMS.find(function(x){ return x.id===id; });
+  var a = ASSET_CONTENT[id];
+  var o = owuw(id);
+  var cv = comp(id);
+  var sc = scores[id];
+  var w = weights;
+  var html = '<div class="asset-panel"><div class="asset-left">';
+  html += '<div class="asset-section"><div class="asset-section-ttl">Current Positioning</div>';
+  html += '<div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:14px">';
+  html += '<div><div style="font-size:22px;font-weight:900;color:' + o.col + '">OW ' + o.ow + '</div><div style="font-size:11px;color:var(--t3)">Overweight</div></div>';
+  html += '<div><div style="font-size:22px;font-weight:900;color:var(--t3)">UW ' + o.uw + '</div><div style="font-size:11px;color:var(--t3)">Underweight</div></div>';
+  html += '<div><div style="font-size:22px;font-weight:900;color:' + o.col + '">' + fmtScore(cv) + '</div><div style="font-size:11px;color:var(--t3)">Composite Score</div></div>';
+  html += '<div><div style="font-size:22px;font-weight:900;color:' + o.col + '">' + conviction(cv) + '</div><div style="font-size:11px;color:var(--t3)">Conviction</div></div>';
+  html += '</div>';
+  html += '<p style="font-size:12px;color:var(--t2);line-height:1.7">' + a.brief + '</p></div>';
+  html += '<div class="asset-section"><div class="asset-section-ttl">Notable Events & Market Impacts</div>';
+  a.events.forEach(function(ev){ html += '<div class="asset-event"><strong>' + ev.d + ':</strong> ' + ev.e + '</div>'; });
+  html += '</div></div>';
+  html += '<div class="asset-right">';
+  html += '<div class="asset-section"><div class="asset-section-ttl">Key Signal Drivers</div><div style="font-size:11px;color:var(--t2);line-height:1.7">' + d.drivers + '</div></div>';
+  html += '<div class="asset-section"><div class="asset-section-ttl">Signal Breakdown (' + HORIZONS[currentHz].label + ')</div>';
+  html += '<div style="font-size:9px;color:var(--t3);margin-bottom:10px">Weights: F=' + w.wF + '% S=' + w.wS + '% V=' + w.wV + '% M=' + w.wM + '%</div>';
+  [['f','Fundamental',sc.f],['s','Sentiment',sc.s],['v','Valuation',sc.v],['m','Momentum',sc.m]].forEach(function(sig) {
+    var c = sig[2] >= 0 ? '#22c55e' : '#ef4444';
+    var pct = Math.round((sig[2]+10)/20*100);
+    html += '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--t2)">' + sig[1] + '</span><span style="color:' + c + ';font-weight:700">' + fmtScore(sig[2]) + '</span></div>';
+    html += '<div style="height:8px;background:var(--card2);border-radius:4px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:' + c + ';border-radius:4px"></div></div></div>';
+  });
+  html += '</div>';
+  html += '<div class="asset-section"><div class="asset-section-ttl">What to Watch</div>';
+  a.watch.forEach(function(w){ html += '<div class="watch-item">' + w + '</div>'; });
+  html += '</div></div></div>';
+  var el = document.getElementById('asset-body');
+  if (el) el.innerHTML = html;
+}
+
+// ===== METHODOLOGY =====
+function renderMethodology() {
+  var html = '';
+  html += '<div class="meth-section"><div class="meth-ttl">Model Overview</div><div class="meth-text">';
+  html += '<p>This dashboard implements a quantitative multi-asset signal framework spanning 9 cross-sectional allocation dimensions. For each dimension, four signal categories — fundamental, sentiment, valuation, and momentum — are scored on a -10 to +10 scale, then combined using horizon-specific weights into a single composite score.</p>';
+  html += '<p>Positive composite scores indicate a bullish tilt toward the <em>first-named</em> asset in each dimension (e.g., "Equities" in Stocks vs Bonds). The magnitude reflects conviction strength: scores ≥ 6 = Strong, 3-5.9 = Moderate, 0-2.9 = Slight. Every dimension shows BOTH sides of the trade: OW [favored] / UW [disfavored].</p>';
+  html += '<p style="font-family:monospace;background:var(--card2);padding:10px;border-radius:4px;font-size:11px">composite = (wF×F + wS×S + wV×V + wM×M) / (wF+wS+wV+wM) ∈ [-10, +10]</p>';
+  html += '</div></div>';
+  html += '<div class="meth-section"><div class="meth-ttl">Horizon Weight Schedule & Academic Basis</div>';
+  html += '<table class="hz-table"><thead><tr><th>Horizon</th><th>F %</th><th>S %</th><th>V %</th><th>M %</th><th>Rationale</th></tr></thead><tbody>';
+  Object.keys(HORIZONS).forEach(function(k) {
+    var h = HORIZONS[k];
+    html += '<tr' + (k===currentHz?' style="background:var(--as)"':'') + '>';
+    html += '<td style="font-weight:700">' + k.toUpperCase() + (k===currentHz?' ★':'') + ' — ' + h.label + '</td>';
+    html += '<td>' + h.wF + '</td><td>' + h.wS + '</td><td>' + h.wV + '</td><td>' + h.wM + '</td>';
+    html += '<td style="font-size:10px;color:var(--t2)">' + h.rationale + '</td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  var faqs = [
+    ['How are scores calibrated?','Each raw signal is Z-score normalized relative to its 5-year rolling history. Z-score > 1 = bullish; < -1 = bearish, then scaled to [-10, +10]. Signals with limited history use longer-run historical averages.'],
+    ['Why does OW/UW sometimes seem counterintuitive?','Each dimension is a 2-sided trade: positive composite = OW first-named (bull side). The label always shows both sides: OW [favored] / UW [disfavored]. Sliders show magnitude and direction visually.'],
+    ['How are portfolio tilts calculated?','Tilt (%) = Direction × Composite Score × Sensitivity, capped at ±15%. Direction maps the dimension signal to the specific asset. Allocations floored at 0%.'],
+    ['What is the academic basis?','Fama-French (1992): value/size factors predictive. Jegadeesh & Titman (1993): momentum persistence 1-12M. Shiller (1988): CAPE as long-horizon predictor (R²≈0.4 at 10Y). Baker & Wurgler (2006): sentiment contrarian at 1-6M. Campbell & Thompson (2008): ERP predictability.'],
+    ['Why do horizon weights shift so much?','Empirical evidence shows strong time-dependency: momentum explains ~5% of 1M returns but near-zero at 5Y. CAPE explains near-zero at 1M but ~40% at 10Y. Matching weights to predictive window is critical for model accuracy.']
+  ];
+  html += '<div class="meth-section"><div class="meth-ttl">FAQ</div>';
+  faqs.forEach(function(faq) {
+    html += '<div class="faq-item"><div class="faq-q">Q: ' + faq[0] + '</div><div class="faq-a">' + faq[1] + '</div></div>';
+  });
+  html += '</div>';
+  var el = document.getElementById('meth-content');
+  if (el) el.innerHTML = html;
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('nav-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+  setHz('5y');
+  renderDashboard();
+});
+
+</script>
+</body>
+</html>
